@@ -46,7 +46,7 @@ npm install
 
 ### 3. Set your API key
 
-Open the file `API/index.js` and replace the placeholder with your own API key:
+Create the file `API/index.js` and replace the placeholder with your own API key:
 
 ```js
 // API/index.js
