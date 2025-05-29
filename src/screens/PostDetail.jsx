@@ -10,6 +10,9 @@ import { Avatar } from '../components';
 import { useFocusEffect } from '@react-navigation/native';
 import API from '../API';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI({ apiKey: "AIzaSyAXJTN4JRmSs-fYlueU9jDn2LJdS3kGPwU" });
 
 const PostDetail = ({ route, navigation }) => {
   const item = route.params;
@@ -27,7 +30,7 @@ const PostDetail = ({ route, navigation }) => {
       body: JSON.stringify({ token: token, idCongThuc: item?.maCT })
     })
     const data = await respone.json();
-    
+
     setComment(data);
   }
 
@@ -40,7 +43,6 @@ const PostDetail = ({ route, navigation }) => {
     }, [navigation])
   );
 
-
   const sendComment = async () => {
     setIsLoading(true);
     const token = await getToken();
@@ -49,16 +51,44 @@ const PostDetail = ({ route, navigation }) => {
       setIsLoading(false);
       return;
     }
-    const respone = await fetch(`${API}/api/CongThuc/CommentPost`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ like_share: { token: token, idCongThuc: item?.maCT }, comment: commentContent })
-    })
-    if (respone.ok) {
-      await loadComment();
+
+    const geminiResponse = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: `Bạn là một hệ thống kiểm duyệt nội dung bình luận. Nhiệm vụ của bạn là phân tích đoạn văn bản sau và cho biết liệu nội dung đó có phù hợp để hiển thị công khai hay không.
+
+**Tiêu chí kiểm duyệt:**
+1. Không chứa từ ngữ thô tục, chửi bậy, tục tĩu.
+2. Không xúc phạm, miệt thị cá nhân, tổ chức, dân tộc, giới tính, tôn giáo,...
+3. Không liên quan đến các vấn đề nhạy cảm như chính trị, phân biệt chủng tộc, kỳ thị giới tính, bạo lực, tự tử,...
+4. Không vi phạm thuần phong mỹ tục, đạo đức xã hội hoặc khuyến khích hành vi lệch chuẩn.
+5. Không có nội dung mang tính khiêu dâm, phản cảm.
+
+**Yêu cầu phản hồi:**
+- Nếu **bình luận hợp lệ**, hãy trả lời: 1
+- Nếu **bình luận vi phạm**, hãy trả lời: 0
+
+**Nội dung cần kiểm duyệt:**
+${commentContent}
+`,
+    });
+    if (Number(geminiResponse.text) == 1) {
+      const respone = await fetch(`${API}/api/CongThuc/CommentPost`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ like_share: { token: token, idCongThuc: item?.maCT }, comment: commentContent })
+      })
+
+      if (respone.ok) {
+        await loadComment();
+        setCommentContent("");
+        setIsLoading(false);
+      }
+    } else {
+      Alert.alert("Bình luận", "Bình luận vi phạm tiêu chuẩn cộng đồng!");
       setCommentContent("");
       setIsLoading(false);
     }
+
   }
 
   return (
@@ -147,7 +177,7 @@ const PostDetail = ({ route, navigation }) => {
         {/* Comment List  */}
         <View style={{ marginVertical: 15, gap: 17 }}>
           {
-            comments?.map((comment, index) => <Comment key={index} item={comment} reload={() => loadComment()}/>)
+            comments?.map((comment, index) => <Comment key={index} item={comment} reload={() => loadComment()} />)
           }
           {
             comments.length == 0 &&
