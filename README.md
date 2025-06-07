@@ -51,7 +51,7 @@ Create the file `API/index.js` and replace the placeholder with your own API key
 ```js
 // API/index.js
 // You can use my API: "https://khoa-qwcd.onrender.com"
-const API_KEY = "your-api-key-here";
+export default API = "YOUR_API"
 ```
 
 ### 4. Start the application
