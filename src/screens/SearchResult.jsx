@@ -13,7 +13,7 @@ const SearchResult = ({ route, navigation }) => {
       <View >
         <Header title="Kết quả tìm kiếm" navigation={navigation} showBackButton={true} />
       </View>
-      {item?.length == 0 ? (<Text>123</Text>) : (
+      {item?.length == 0 ? (<Text>Không tìm thấy công thức</Text>) : (
         <FlatList
           data={item}
           showsVerticalScrollIndicator={false}
