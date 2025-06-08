@@ -23,7 +23,7 @@ It also features a smart calorie calculator and powerful ingredient-based search
 
 - **Frontend**: React Native
 - **Backend**: .NET
-- **Database**: MySQL
+- **Database**: PostgreSQL
 - **Authentication**: JWT-based user auth
 
 ---
