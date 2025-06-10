@@ -63,6 +63,10 @@ export default function AddNguyenLieu({ navigation }) {
       Alert.alert("Thêm nguyên liệu", 'Calories chỉ được chứa số!');
       return;
     }
+    if (Number(calories) <= 0) {
+      Alert.alert("Thêm nguyên liệu", 'Calories không được bé hơn bằng 0!');
+      return;
+    }
     setLoading(true);
     const token = await getToken();
     const respone = await fetch(`${API}/api/NguyenLieu/addnguyenlieu`, {
