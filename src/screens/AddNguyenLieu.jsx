@@ -53,6 +53,10 @@ export default function AddNguyenLieu({ navigation }) {
     if (respone.ok) {
       await load();
     }
+    else
+    {
+      Alert.alert("Xoá nguyên liệu", "Nguyên liệu đang được sử dụng, không thể xóa!");
+    }
   }
 
   const handleAdd = async () => {

@@ -68,6 +68,20 @@ const Dashboard = ({ navigation }) => {
     }
   }
 
+  const handleResetReportCount = async (maCT) => {
+    setLoading(true);
+    const token = await getToken();
+    const respone = await fetch(`${API}/api/CongThuc/resetReport`, {
+      method: 'POST',
+      headers: {
+        'accept': '*/*',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token: token, idCongThuc: maCT })
+    })
+      await reload();
+      setLoading(false);
+  }
   const handleLogout = async () => {
     await deleteToken();
     navigation.navigate("Home")
@@ -91,7 +105,7 @@ const Dashboard = ({ navigation }) => {
 
         {/* Post  */}
         <FlatList
-          data={posts}
+          data={[...posts].sort((a, b) => b.luotToCao - a.luotToCao)} // Sort descending by report count
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listStyle}
           keyExtractor={(item, index) => index}
@@ -168,6 +182,13 @@ const Dashboard = ({ navigation }) => {
                 press={() => handleDelete(item?.maCT)}
               />
 
+              <Button
+                button={{ height: hp(6.2), width: '100%', margin: 'auto', marginTop: 8 }}
+                title="Reset lượt tố cáo"
+                loading={loading}
+                shadow={false}
+                press={() => handleResetReportCount(item?.maCT)}
+              />
             </View >
           }
           ListFooterComponent={(
