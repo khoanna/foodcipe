@@ -98,6 +98,16 @@ const UserDetail = ({ navigation, route }) => {
     })
   }
 
+  const handleUnfollow = async () => {
+  setUserInfo((prev) => ({ ...prev, isFollowed: false }));
+  const token = await getToken();
+  const respone = await fetch(`${API}/api/NguoiDung/unfollowUser`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, idTaiKhoan: route.params })
+    });
+  }
+  
   return (
     <ScreenWrapper bg="white">
       <View style={{ flex: 1, backgroundColor: 'white' }}>
@@ -126,7 +136,7 @@ const UserDetail = ({ navigation, route }) => {
                       rounded={theme.radius.xxl * 1.4}
                     />
                     {!isMe && (
-                      <Pressable style={styles.editIcon} onPress={() => handleFollow()}>
+                      <Pressable style={styles.editIcon} onPress={() => userInfo.isFollowed ? handleUnfollow() : handleFollow()}>
                         <Icon
                           name='heart'
                           strokeWidth={2.5}

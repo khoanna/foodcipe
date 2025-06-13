@@ -1,4 +1,4 @@
-import { View, StyleSheet, Text, Pressable, FlatList, TouchableOpacity } from 'react-native'
+import { View, StyleSheet, Text, Pressable, FlatList, TouchableOpacity, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { Avatar, Loading, ScreenWrapper } from '../components'
 import { wp, hp } from '../helpers/common';
@@ -68,6 +68,27 @@ const Dashboard = ({ navigation }) => {
     }
   }
 
+  const handleResetReportCount = async (maCT) => {
+    setLoading(true);
+    const token = await getToken();
+    const respone = await fetch(`${API}/api/CongThuc/resetReport`, {
+      method: 'POST',
+      headers: {
+        'accept': '*/*',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token: token, idCongThuc: maCT })
+    })
+      console.log('Reset report count status:', respone.status); // Log the status code
+
+      if (respone.status == 200) 
+      {
+          Alert.alert("Reset lượt tố cáo", "Đã loại khỏi danh sách tố cáo thành công!");
+          await reload();
+          setLoading(false);
+      }
+      
+  }
   const handleLogout = async () => {
     await deleteToken();
     navigation.navigate("Home")
@@ -91,7 +112,8 @@ const Dashboard = ({ navigation }) => {
 
         {/* Post  */}
         <FlatList
-          data={posts}
+          data={[...posts].filter(post => post.luotToCao > 0) // Filter posts with report count greater than 0
+            .sort((a, b) => b.luotToCao - a.luotToCao)} // Sort descending by report count
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listStyle}
           keyExtractor={(item, index) => index}
@@ -168,6 +190,13 @@ const Dashboard = ({ navigation }) => {
                 press={() => handleDelete(item?.maCT)}
               />
 
+              <Button
+                button={{ height: hp(6.2), width: '100%', margin: 'auto', marginTop: 8 }}
+                title="Reset lượt tố cáo"
+                loading={loading}
+                shadow={false}
+                press={() => handleResetReportCount(item?.maCT)}
+              />
             </View >
           }
           ListFooterComponent={(
