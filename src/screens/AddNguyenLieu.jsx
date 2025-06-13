@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, TextInput, Alert } from 'react-native'
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, TextInput, Alert, Modal } from 'react-native'
 import { useState } from 'react'
 import { getToken } from '../helpers/common';
 import React from 'react'
@@ -15,7 +15,13 @@ export default function AddNguyenLieu({ navigation }) {
   const [searchText, setSearchText] = useState('');
   const [tenNL, setTenNL] = useState('');
   const [calories, setCalories] = useState('');
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editIngredient, setEditIngredient] = useState(null);
 
+  const openEditModal = (ingredient) => {
+      setEditIngredient(ingredient);
+      setEditModalVisible(true);
+  };
   const load = async () => {
     setLoading(true);
     const token = await getToken();
@@ -86,6 +92,34 @@ export default function AddNguyenLieu({ navigation }) {
     setLoading(false);
   }
 
+  const handleEditSave = async () => {
+  setLoading(true);
+  const token = await getToken();
+  const respone = await fetch(`${API}/api/NguyenLieu/updateNguyenLieu`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      token,
+      maNL: editIngredient.maNL,
+      tenNL: editIngredient.tenNL,
+      calories: Number(editIngredient.calories),
+      anhNL: "string"
+    })
+  });
+  if (respone.ok) {
+    setEditModalVisible(false);
+    await load();
+    setLoading(false);
+    Alert.alert("Cập nhật nguyên liệu", "Cập nhật nguyên liệu thành công!");
+  }
+  else 
+  {
+    setEditModalVisible(false);
+    await load();
+    setLoading(false);
+    Alert.alert("Cập nhật nguyên liệu", "Cập nhật nguyên liệu thất bại!");
+  }
+};
   return (
     <ScreenWrapper>
       {loading ? <Loading /> : (
@@ -124,14 +158,53 @@ export default function AddNguyenLieu({ navigation }) {
                   <Text style={styles.name}>{item?.tenNL}</Text>
                   <Text style={styles.calories}>{item?.calories} kcal</Text>
                 </View>
-                <TouchableOpacity onPress={() => handleDelete(item?.maNL)}>
-                  <Icon name='delete' size={20} color={theme.colors.rose} />
-                </TouchableOpacity>
+                <View style={styles.iconRow}>
+                  <TouchableOpacity onPress={() => openEditModal(item)}>
+                  <Icon name='edit' size={20} color={theme.colors.primary} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleDelete(item?.maNL)}>
+                    <Icon name='delete' size={20} color={theme.colors.rose} />
+                  </TouchableOpacity>
+                </View>
+                
               </View >
             )}
           />
         </View>
       )}
+      {editModalVisible && (
+      <Modal
+        visible={editModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#00000088' }}>
+          <View style={{ backgroundColor: '#fff', padding: 20, borderRadius: 12, width: '80%' }}>
+            <TextInput
+              style={styles.input}
+              value={editIngredient?.tenNL}
+              onChangeText={text => setEditIngredient({ ...editIngredient, tenNL: text })}
+              editable={false}
+              placeholder="Tên nguyên liệu"
+            />
+            <TextInput
+              style={styles.input}
+              value={String(editIngredient?.calories)}
+              onChangeText={text => setEditIngredient({ ...editIngredient, calories: text })}
+              placeholder="Calories"
+              keyboardType="numeric"
+            />
+            <TouchableOpacity style={styles.button} onPress={handleEditSave}>
+              <Text style={styles.buttonText}>Lưu</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.button, { backgroundColor: '#ccc' }]} onPress={() => setEditModalVisible(false)}>
+              <Text style={styles.buttonText}>Hủy</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    )}
     </ScreenWrapper>
   )
 }
@@ -161,6 +234,11 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between'
+  },
+  iconRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 8, // or use marginRight on the first icon if gap is not supported
   },
   name: {
     fontSize: 16,

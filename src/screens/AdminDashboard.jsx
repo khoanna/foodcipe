@@ -1,4 +1,4 @@
-import { View, StyleSheet, Text, Pressable, FlatList, TouchableOpacity } from 'react-native'
+import { View, StyleSheet, Text, Pressable, FlatList, TouchableOpacity, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { Avatar, Loading, ScreenWrapper } from '../components'
 import { wp, hp } from '../helpers/common';
@@ -79,8 +79,15 @@ const Dashboard = ({ navigation }) => {
       },
       body: JSON.stringify({ token: token, idCongThuc: maCT })
     })
-      await reload();
-      setLoading(false);
+      console.log('Reset report count status:', respone.status); // Log the status code
+
+      if (respone.status == 200) 
+      {
+          Alert.alert("Reset lượt tố cáo", "Đã loại khỏi danh sách tố cáo thành công!");
+          await reload();
+          setLoading(false);
+      }
+      
   }
   const handleLogout = async () => {
     await deleteToken();
@@ -105,7 +112,8 @@ const Dashboard = ({ navigation }) => {
 
         {/* Post  */}
         <FlatList
-          data={[...posts].sort((a, b) => b.luotToCao - a.luotToCao)} // Sort descending by report count
+          data={[...posts].filter(post => post.luotToCao > 0) // Filter posts with report count greater than 0
+            .sort((a, b) => b.luotToCao - a.luotToCao)} // Sort descending by report count
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listStyle}
           keyExtractor={(item, index) => index}
